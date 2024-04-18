@@ -1,45 +1,19 @@
-base_model: mistralai/Mistral-7B-v0.1
-model_type: MistralForCausalLM
-tokenizer_type: LlamaTokenizer
+base_model: meta-llama/Meta-Llama-3-8B
+model_type: LlamaForCausalLM
+tokenizer_type: AutoTokenizer
 
 load_in_8bit: false
 load_in_4bit: false
 strict: false
 
-train_on_inputs: false
-special_tokens:
-  bos_token: "<s>"
-  eos_token: "</s>"
-  unk_token: "<unk>"
-
-datasets:
-  - path: EternalRecursion/conversation-data
-    type: input_output
+pretraining_dataset: EternalRecursion/conversation-data-v2
 dataset_prepared_path: last_run_prepared
-val_set_size: 0.01
-output_dir: ./lora-out
-eval_sample_packing: false
+val_set_size: 0.02
+output_dir: ./out
 
-adapter: lora
-lora_model_dir:
-
-sequence_len: 4096
+sequence_len: 8192
 sample_packing: true
 pad_to_sequence_len: true
-
-lora_r: 32
-lora_alpha: 16
-lora_dropout: 0.05
-lora_target_linear: true
-lora_fan_in_fan_out:
-lora_target_modules:
-  - gate_proj
-  - down_proj
-  - up_proj
-  - q_proj
-  - v_proj
-  - k_proj
-  - o_proj
 
 wandb_project: Simulacrum
 wandb_entity:
@@ -50,32 +24,28 @@ wandb_log_model:
 gradient_accumulation_steps: 8
 micro_batch_size: 1
 num_epochs: 5
-optimizer: adamw_torch
+optimizer: paged_adamw_8bit
 lr_scheduler: cosine
-learning_rate: 0.0002
+learning_rate: 2e-5
 
 train_on_inputs: false
 group_by_length: false
 bf16: auto
-fp16: false
-tf32: true
+fp16:
+tf32: false
 
 gradient_checkpointing: true
-early_stopping_patience:
+gradient_checkpointing_kwargs:
+  use_reentrant: false
+early_stopping_patience: 3
 resume_from_checkpoint:
-local_rank:
 logging_steps: 1
 xformers_attention:
-flash_attention: false
-sdp_attention: true
+flash_attention: true
 
-loss_watchdog_threshold: 5.0
-loss_watchdog_patience: 3
-
-warmup_steps: 10
-evals_per_epoch: 4
+warmup_steps: 100
+evals_per_epoch: 2
 eval_table_size:
-eval_table_max_new_tokens: 128
 saves_per_epoch: 1
 debug:
 deepspeed:
@@ -83,3 +53,4 @@ weight_decay: 0.0
 fsdp:
 fsdp_config:
 special_tokens:
+  pad_token: <|end_of_text|>
