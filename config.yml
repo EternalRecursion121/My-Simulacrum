@@ -6,7 +6,9 @@ load_in_8bit: false
 load_in_4bit: false
 strict: false
 
-pretraining_dataset: EternalRecursion/conversation-data-v2
+datasets:
+  - path: EternalRecursion/conversation-data-v1
+    type: input_output
 dataset_prepared_path: last_run_prepared
 val_set_size: 0.02
 output_dir: ./out
